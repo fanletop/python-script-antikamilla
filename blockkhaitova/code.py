@@ -33,6 +33,25 @@ class VKBanManager:
             return True
         return False
 
+    def get_user_info(self, token, user_id):
+        """Получает информацию о пользователе по ID"""
+        url = "https://api.vk.com/method/users.get"
+        params = {
+            "access_token": token,
+            "v": "5.131",
+            "user_ids": user_id,
+            "fields": "first_name,last_name"
+        }
+        try:
+            response = requests.post(url, params=params)
+            data = response.json()
+            if 'response' in data and len(data['response']) > 0:
+                user = data['response'][0]
+                return f"{user['first_name']} {user['last_name']} (ID: {user_id})"
+        except Exception:
+            pass
+        return f"Неизвестный пользователь (ID: {user_id})"
+
     def ban_user(self, token, user_id):
         url = "https://api.vk.com/method/account.ban"
         params = {
@@ -63,18 +82,25 @@ class VKBanManager:
                     else:
                         result = self.unban_user(token, user_id)
                     
+                    # Получаем информацию о пользователе для красивого вывода
+                    user_info = self.get_user_info(token, user_id)
+                    
                     results.append({
                         "token": token[:10] + "...",
                         "user_id": user_id,
+                        "user_info": user_info,
                         "result": result
                     })
                     
                     time.sleep(0.3)  # Задержка между запросами
                     
                 except Exception as e:
+                    # Все равно пытаемся получить информацию о пользователе даже при ошибке
+                    user_info = self.get_user_info(token, user_id)
                     results.append({
                         "token": token[:10] + "...",
                         "user_id": user_id,
+                        "user_info": user_info,
                         "error": str(e)
                     })
         return results
@@ -97,13 +123,26 @@ def main():
                 
         elif command in ["/ban", "/unban"]:
             action = "ban" if command == "/ban" else "unban"
+            action_text = "забанен" if action == "ban" else "разбанен"
+            
+            print(f"\nНачинаю процесс {action_text}...")
             results = manager.process_blacklist(action)
+            
+            print(f"\nРезультаты операции:")
+            print("-" * 50)
             
             for result in results:
                 if 'error' in result:
-                    print(f"Ошибка для {result['user_id']}: {result['error']}")
+                    print(f"❌ Ошибка для {result['user_info']}: {result['error']}")
                 else:
-                    print(f"Успешно обработан {result['user_id']} с токеном {result['token']}")
+                    if 'response' in result['result'] and result['result']['response'] == 1:
+                        print(f"✅ Успешно {action_text}: {result['user_info']} (токен: {result['token']})")
+                    else:
+                        error_msg = result['result'].get('error', {}).get('error_msg', 'Неизвестная ошибка')
+                        print(f"⚠️  Ошибка для {result['user_info']}: {error_msg}")
+            
+            print("-" * 50)
+            print(f"Обработано пользователей: {len(results)}")
                     
         else:
             print("Неизвестная команда")
