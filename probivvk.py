@@ -92,7 +92,7 @@ class VKUserInfoBot:
         result += f"""
 🔗 ССЫЛКИ:
 • Фото: {user_info.get('photo_max_orig', 'Не доступно')}
-• Профиль: https://vk.com/{domain}
+• Профиль: https://vk.ru/{domain}
 """
         
         return result
