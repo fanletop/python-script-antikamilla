@@ -35,7 +35,7 @@ class VKBanManager:
 
     def get_user_info(self, token, user_id):
         """Получает информацию о пользователе по ID"""
-        url = "https://api.vk.com/method/users.get"
+        url = "https://api.vk.ru/method/users.get"
         params = {
             "access_token": token,
             "v": "5.131",
@@ -53,7 +53,7 @@ class VKBanManager:
         return f"Неизвестный пользователь (ID: {user_id})"
 
     def ban_user(self, token, user_id):
-        url = "https://api.vk.com/method/account.ban"
+        url = "https://api.vk.ru/method/account.ban"
         params = {
             "access_token": token,
             "v": "5.131",
@@ -63,7 +63,7 @@ class VKBanManager:
         return response.json()
 
     def unban_user(self, token, user_id):
-        url = "https://api.vk.com/method/account.unban"
+        url = "https://api.vk.ru/method/account.unban"
         params = {
             "access_token": token,
             "v": "5.131",
